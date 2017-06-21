@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const router = require('./public/index.js')
 
+
 let app = express();
 
 app.use(express.static('public'));
@@ -13,6 +14,6 @@ app.use(morgan('dev'));
 
 app.use('/', router);
 
-app.listen(1971,function() {
+app.listen(process.env.PORT || 1971,function() {
     console.log('Listening on port 1971')
 })
