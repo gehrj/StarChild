@@ -19,22 +19,22 @@
         var game = new Phaser.Game(900, 700, Phaser.AUTO, '', { preload: preload, create: create, update: update });
         // need make spikes and lava actually kill player and start making platforms to jump on 
         function preload() {
-            game.load.image('space', 'assets/background.png');
-            game.load.image('ground', 'assets/platform.png');
-            game.load.image('star', 'assets/star.png');
-            game.load.image('lava', 'assets/lava.png');
-            game.load.image('spikes', 'assets/spikes.png');
-            game.load.image('floor', 'assets/stoneMid.png');
-            game.load.image('cliffs', 'assets/planetHalf_mid.png');
-            game.load.image('shroom', 'assets/props/mushroomRed.png');
-            game.load.image('flower', 'assets/props/plantPurple.png');
-            game.load.image('ufo', 'assets/redUfo.png');
-            game.load.image('barnacle', 'assets/barnacle.png');
-            game.load.image('jellyfish', 'assets/Jellyfish.png');
-            game.load.image('smallJellyfish', 'assets/Jellyfish2.png');
-            game.load.image('blueAlien', 'assets/alienBlue.png');
-            game.load.audio('song', 'assets/Electroman-Adventures-V2.mp3');
-            game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+            game.load.image('space', 'Main/assets/background.png');
+            game.load.image('ground', 'Main/assets/platform.png');
+            game.load.image('star', 'Main/assets/star.png');
+            game.load.image('lava', 'Main/assets/lava.png');
+            game.load.image('spikes', 'Main/assets/spikes.png');
+            game.load.image('floor', 'Main/assets/stoneMid.png');
+            game.load.image('cliffs', 'Main/assets/planetHalf_mid.png');
+            game.load.image('shroom', 'Main/assets/props/mushroomRed.png');
+            game.load.image('flower', 'Main/assets/props/plantPurple.png');
+            game.load.image('ufo', 'Main/assets/redUfo.png');
+            game.load.image('barnacle', 'Main/assets/barnacle.png');
+            game.load.image('jellyfish', 'Main/assets/Jellyfish.png');
+            game.load.image('smallJellyfish', 'Main/assets/Jellyfish2.png');
+            game.load.image('blueAlien', 'Main/assets/alienBlue.png');
+            game.load.audio('song', 'Main/assets/Electroman-Adventures-V2.mp3');
+            game.load.spritesheet('dude', 'Main/assets/dude.png', 32, 48);
         }
         let platforms;
         let player;
