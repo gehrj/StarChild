@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>StarChild</title>
+    <script src="//cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script type="text/javascript">
+        //900x700 is what i want for production
+        var game = new Phaser.Game(900, 700, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        // need make spikes and lava actually kill player and start making platforms to jump on 
+        function preload() {
+            game.load.image('space', 'assets/background.png');
+            game.load.image('ground', 'assets/platform.png');
+            game.load.image('star', 'assets/star.png');
+            game.load.image('lava', 'assets/lava.png');
+            game.load.image('spikes', 'assets/spikes.png');
+            game.load.image('floor', 'assets/stoneMid.png');
+            game.load.image('cliffs', 'assets/planetHalf_mid.png');
+            game.load.image('shroom', 'assets/props/mushroomRed.png');
+            game.load.image('flower', 'assets/props/plantPurple.png');
+            game.load.image('ufo', 'assets/redUfo.png');
+            game.load.image('barnacle', 'assets/barnacle.png');
+            game.load.image('jellyfish', 'assets/Jellyfish.png');
+            game.load.image('smallJellyfish', 'assets/Jellyfish2.png');
+            game.load.image('blueAlien', 'assets/alienBlue.png');
+            game.load.audio('song', 'assets/Electroman-Adventures-V2.mp3');
+            game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+        }
+        let platforms;
+        let player;
+        let cursors;
+        let floor;
+        let stars;
+        let score = 0;
+        let text;
+        let lava;
+        let spikes;
+        let flower;
+        let shroom;
+        let cliffs;
+        let ufo;
+        let ufo1;
+        let ufo2;
+        let lives = 4;
+        let barnacle;
+        let barnacle1;
+        let barnacle2;
+        let barnacle3;
+        let jellyfish;
+        let jellyfish1;
+        let jellyfish2;
+        let jellyfish3;
+        let smallJellyfish;
+        let blueAlien;
+        let start = false;
+        let counter = 0;
+        let music;
+
+        function create() {
+            // this sets the bounds of the world, so where the character can run too not based on screen size
+            game.world.setBounds(0, 0, 1900, 1200);
+            //  We're going to be using physics, so enable the Arcade Physics system
+            game.physics.startSystem(Phaser.Physics.ARCADE);
+
+            //  A simple background for our game
+            var background = game.add.sprite(0, 0, 'space');
+            if (!start) {
+                titleText = game.add.text(200, 16, 'StarChild', { fontSize: '100px', fill: 'yellow' });
+                loreText = game.add.text(30, 250, 'Our hero Atlas, aka StarChild, is the unsung hero of the galaxy', { fontSize: '28px', fill: 'purple' });
+                loreText2 = game.add.text(30, 290, 'The tribes of a distant galaxy are currently at war', { fontSize: '28px', fill: 'purple' });
+                loreText3 = game.add.text(30, 330, 'The only hope of restoring peace lies in the hands of StarChild!', { fontSize: '28px', fill: 'purple' });
+                loreText4 = game.add.text(30, 370, 'Collect 370 grams of star dust and then deliver it to floobert', { fontSize: '28px', fill: 'purple' });
+                loreText5 = game.add.text(30, 410, 'Floobert is the blue alien scientist who can help save the day!', { fontSize: '28px', fill: 'purple' });
+                loreText6 = game.add.text(30, 450, 'The stardust can be used to create beautiful star Trees <3', { fontSize: '28px', fill: 'purple' });
+                loreText7 = game.add.text(30, 490, 'StarChild must remain jumping on red ufos due to his DNA', { fontSize: '28px', fill: 'purple'});
+                loreText8 = game.add.text(30, 530, 'Watch out for space Jellyfish and barnacles they are hungry!!', { fontSize: '28px', fill: 'purple' });
+                startText = game.add.text(200, 600, 'Click the Screen to save the Galaxy!', { fontSize: '28px', fill: 'white' });
+                background.inputEnabled = true;
+                background.events.onInputDown.add(listener, this);
+            }
+            if (start) {
+                // audio here
+                music = game.add.audio('song');
+                music.loop = true;
+                music.play();
+
+                //  The platforms group contains the ground and the 2 ledges we can jump on
+                platforms = game.add.group();
+                floor = game.add.group();
+                lava = game.add.group();
+                spikes = game.add.group();
+                shroom = game.add.group();
+                cliffs = game.add.group();
+                flower = game.add.group();
+
+
+                //  We will enable physics for any object that is created in this group
+                platforms.enableBody = true;
+                floor.enableBody = true;
+                lava.enableBody = true;
+                spikes.enableBody = true;
+                cliffs.enableBody = true;
+
+                for (let i = 0; i < 7; i++) {
+                    // Here we create the ground.
+                    // var ground = platforms.create(0, game.world.height - 80, 'ground');
+                    if (!i) var ground = floor.create(0, game.world.height - 80, 'floor');
+                    else ground = floor.create((128 * i), game.world.height - 80, 'floor');
+
+                    //      Scale it to fit the width of the game (the original sprite is 400x32 in size)
+                    // ground.scale.setTo(10, 1);
+
+                    //  This stops it from falling away when you jump on it
+                    ground.body.immovable = true;
+
+                }
+                // creating lava 128x128
+                for (let i = 0; i < 5; i++) {
+                    if (!i) var danger = lava.create(896, game.world.height - 80, 'lava');
+                    else danger = lava.create((i * 128 + 896), game.world.height - 80, 'lava');
+                    danger.body.immovable = true;
+                }
+                // creating more floor after lava 128x128
+                for (let i = 0; i < 3; i++) {
+                    if (!i) ground = floor.create(1536, game.world.height - 80, 'floor');
+                    else ground = floor.create((i * 128 + 1536), game.world.height - 80, 'floor');
+                    ground.body.immovable = true;
+                }
+                // create cliffs here  128x72
+                for (let i = 0; i < 3; i++) {
+                    if (!i) createCliff(0, 250, cliffs);
+                    else createCliff(i * 128, 250, cliffs);
+                }
+
+                createCliff(630, 350, cliffs);
+
+                createCliff(635, 640, cliffs);
+
+                for (let i = 0; i < 4; i++) {
+                    if (!i) createCliff(1900, 700, cliffs);
+                    else createCliff(1900 - (i * 128), 700, cliffs);
+                }
+
+                createCliff(1644, 850, cliffs);
+                createCliff(1516, 975, cliffs);
+                createCliff(1650, 400, cliffs);
+
+                for (let i = 0; i < 2; i++) {
+                    if (!i) createCliff(1900, 1075, cliffs)
+                    else createCliff(1900 - (i * 128), 1075, cliffs);
+                }
+
+                for (let i = 0; i < 4; i++) {
+                    if (!i) createCliff(635, 1000, cliffs);
+                    else createCliff(635 - (i * 128), 1000, cliffs)
+                }
+
+                for (let i = 0; i < 3; i++) {
+                    if (!i) createCliff(0, 650, cliffs);
+                    else createCliff(i * 128, 650, cliffs);
+                }
+
+                createCliff(600, 1150, cliffs);
+                for (let i = 0; i < 3; i++) {
+                    if (!i) createCliff(0, 1150, cliffs);
+                    else createCliff(i * 128, 1150, cliffs);
+                }
+
+
+                // cliff = cliffs.create()
+
+                // create spikes here
+                var trap = spikes.create(512, game.world.height - 120, 'spikes');
+                trap.body.immovable = true;
+
+                trap = spikes.create(700, game.world.height - 120, 'spikes');
+                trap.body.immovable = true;
+
+                trap = spikes.create(125, game.world.height - 680, 'spikes');
+                trap.body.immovable = true;
+
+                // create shroomz here
+                var mushroom = shroom.create(1780, game.world.height - 208, 'shroom');
+                mushroom = shroom.create(0, game.world.height - 208, 'shroom');
+                mushroom = shroom.create(0, game.world.height - 770, 'shroom');
+                mushroom = shroom.create(300, game.world.height - 1120, 'shroom');
+
+                // create flowers here
+
+                flower.create(60, game.world.height - 370, 'flower');
+                flower.create(1700, game.world.height - 815, 'flower');
+
+                // create moving ufo platforms
+                ufo = game.add.sprite(1200, 450, 'ufo');
+                ufo.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(ufo);
+                ufo.body.immovable = true;
+                ufo.body.collideWorldBounds = true;
+
+                var ufoMotion = game.add.tween(ufo).to({
+                    y: ufo.body.y + 400,
+                    x: ufo.body.x - 200
+                }, 3000, 'Linear', true, 0, 100, true);
+
+                ufo1 = game.add.sprite(1600, game.world.height - 100, 'ufo');
+                ufo1.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(ufo1);
+                ufo1.body.immovable = true;
+                ufo1.body.collideWorldBounds = true;
+
+                var ufoMotion = game.add.tween(ufo1).to({
+                    y: ufo1.body.y - 400,
+                    x: ufo1.body.x - 300
+                }, 3000, 'Linear', true, 0, 100, true);
+
+                ufo2 = game.add.sprite(900, 200, 'ufo');
+                ufo2.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(ufo2);
+                ufo2.body.immovable = true;
+                ufo2.body.collideWorldBounds = true;
+
+                var ufoMotion = game.add.tween(ufo2).to({
+                    x: ufo2.body.x + 500
+                }, 2300, 'Linear', true, 0, 100, true);
+
+                // create barnacles here
+
+                barnacle = game.add.sprite(0, 535, 'barnacle');
+                barnacle.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(barnacle);
+                barnacle.body.immovable = true;
+                barnacle.body.collideWorldBounds = true;
+
+                var barnacleMotion = game.add.tween(barnacle).to({
+                    x: barnacle.body.x + 350
+                }, 3000, 'Linear', true, 0, 100, true);
+
+                barnacle1 = game.add.sprite(255, 185, 'barnacle');
+                barnacle1.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(barnacle1);
+                barnacle1.body.immovable = true;
+                barnacle1.body.collideWorldBounds = true;
+
+                barnacleMotion = game.add.tween(barnacle1).to({
+                    x: barnacle1.body.x + 450
+                }, 3000, 'Linear', true, 0, 100, true);
+
+                barnacle2 = game.add.sprite(670, 185, 'barnacle');
+                barnacle2.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(barnacle2);
+                barnacle2.body.immovable = true;
+                barnacle2.body.collideWorldBounds = true;
+
+                barnacleMotion = game.add.tween(barnacle2).to({
+                    x: barnacle2.body.x - 415
+                }, 3500, 'Linear', true, 0, 100, true);
+
+                barnacle3 = game.add.sprite(1900, 484, 'barnacle');
+                barnacle3.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(barnacle3);
+                barnacle3.body.immovable = true;
+                barnacle3.body.collideWorldBounds = true;
+
+                barnacleMotion = game.add.tween(barnacle3).to({
+                    x: barnacle3.body.x - 375
+                }, 4000, 'Linear', true, 0, 100, true);
+
+                // create jellyfish here
+
+                jellyfish = game.add.sprite(550, 1000, 'jellyfish');
+                jellyfish.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(jellyfish);
+                jellyfish.body.immovable = true;
+                jellyfish.body.collideWorldBounds = true;
+
+                var jellyfishMotion = game.add.tween(jellyfish).to({
+                    y: jellyfish.body.y - 600
+                }, 3000, 'Linear', true, 0, 100, true);
+
+                jellyfish1 = game.add.sprite(1600, 1000, 'jellyfish');
+                jellyfish1.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(jellyfish1);
+                jellyfish1.body.immovable = true;
+                jellyfish1.body.collideWorldBounds = true;
+
+                jellyfishMotion = game.add.tween(jellyfish1).to({
+                    y: jellyfish1.body.y - 350
+                }, 5000, 'Linear', true, 0, 100, true);
+
+                jellyfish2 = game.add.sprite(1200, 800, 'jellyfish');
+                jellyfish2.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(jellyfish2);
+                jellyfish2.body.immovable = true;
+                jellyfish2.body.collideWorldBounds = true;
+
+                jellyfishMotion = game.add.tween(jellyfish2).to({
+                    y: jellyfish2.body.y - 600
+                }, 3000, 'Linear', true, 0, 100, true);
+
+                jellyfish3 = game.add.sprite(1900, 400, 'jellyfish');
+                jellyfish3.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(jellyfish3);
+                jellyfish3.body.immovable = true;
+                jellyfish3.body.collideWorldBounds = true;
+
+                jellyfishMotion = game.add.tween(jellyfish3).to({
+                    x: jellyfish2.body.x - 1200
+                }, 6000, 'Linear', true, 0, 100, true);
+
+                smallJellyfish = game.add.sprite(1900, 0, 'smallJellyfish');
+                smallJellyfish.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(smallJellyfish);
+                smallJellyfish.body.immovable = true;
+                smallJellyfish.body.collideWorldBounds = true;
+
+                var smallJellyfishMotion = game.add.tween(smallJellyfish).to({
+                    x: smallJellyfish.body.x - 1900
+                }, 15000, 'Linear', true, 0, 100, true);
+
+                blueAlien = game.add.sprite(1900, 1090, 'blueAlien');
+                blueAlien.anchor.setTo(0.5, 0.5);
+                game.physics.arcade.enable(blueAlien);
+                blueAlien.body.immovable = true;
+                blueAlien.body.collideWorldBounds = true;
+
+                var blueAlienMotion = game.add.tween(blueAlien).to({
+                    x: blueAlien.body.x - 300
+                }, 10000, 'Linear', true, 0, 100, true);
+
+
+
+
+
+                //***** The player and its settings 32, game.world.height - 150 player spawn **********************
+                player = game.add.sprite(32, game.world.height - 150, 'dude');
+
+                //  We need to enable physics on the player
+                game.physics.arcade.enable(player);
+
+
+                //  Player physics properties. Give the little guy a slight bounce.
+                player.body.bounce.y = 0.2;
+                player.body.gravity.y = 350;
+                player.body.collideWorldBounds = true;
+
+                //  Our two animations, walking left and right.
+                player.animations.add('left', [0, 1, 2, 3], 10, true);
+                player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+
+                // getting stars into the game
+                stars = game.add.group();
+
+                stars.enableBody = true;
+
+                //  create stars
+                for (let i = 0; i < 11; i++) {
+                    //  Create a star inside of the 'stars' group
+                    var star = stars.create(i * 70, 0, 'star');
+
+                    //  Let gravity do its thing
+                    star.body.gravity.y = 6;
+
+                    //  This just gives each star a slightly random bounce value
+                    star.body.bounce.y = 0.7 + Math.random() * 0.2;
+                }
+
+                for (let i = 0; i < 3; i++) {
+                    star = stars.create(i * 40, 100, 'star');
+                    setStarGravity(star);
+                }
+                for (let i = 0; i < 2; i++) {
+                    if (!i) star = stars.create(400, 250, 'star');
+                    else star = stars.create(450, 250, 'star');
+                    setStarGravity(star);
+                }
+                for (let i = 0; i < 2; i++) {
+                    if (!i) star = stars.create(128, 580, 'star');
+                    else star = stars.create(168, 580, 'star');
+                    setStarGravity(star);
+                }
+                for (let i = 0; i < 2; i++) {
+                    if (!i) star = stars.create(98, 630, 'star');
+                    else star = stars.create(200, 630, 'star');
+                    setStarGravity(star);
+                }
+                for (let i = 0; i < 2; i++) {
+                    if (!i) star = stars.create(98, 650, 'star');
+                    else star = stars.create(200, 650, 'star');
+                    setStarGravity(star);
+                }
+
+                for (let i = 0; i < 3; i++) {
+                    if (!i) star = stars.create(125, 650, 'star');
+                    else star = stars.create((i * 25) + 125, 650, 'star');
+                    setStarGravity(star);
+                }
+
+                star = stars.create(650, 900, 'star');
+                setStarGravity(star);
+                star = stars.create(820, 0, 'star');
+                setStarGravity(star);
+
+                for (let i = 0; i < 2; i++) {
+                    if (!i) star = stars.create(685, 610, 'star');
+                    else star = stars.create(685, 250, 'star');
+                    setStarGravity(star);
+                }
+
+                for (let i = 0; i < 2; i++) {
+                    if (!i) star = stars.create(1690, 550, 'star');
+                    else star = stars.create(1850, 550, 'star');
+                    setStarGravity(star);
+                }
+
+                for (let i = 0; i < 3; i++) {
+                    if (!i) star = stars.create(1550, 0, 'star');
+                    else star = stars.create(1550 + (i * 140), 0, 'star');
+                    setStarGravity(star);
+                }
+
+                for (let i = 0; i < 3; i++) {
+                    if (!i) star = stars.create(1550, 400, 'star');
+                    else star = stars.create(1550 + (i * 140), 400, 'star');
+                    setStarGravity(star);
+                }
+
+                //the score(collected starDust)
+                scoreText = game.add.text(16, 16, '0g StarDust!', { fontSize: '32px', fill: 'yellow' });
+                scoreText.fixedToCamera = true;
+
+                // lives
+
+                livesText = game.add.text(750, 16, 'Lives: 4', { fontSize: '32px', fill: 'purple' });
+                livesText.fixedToCamera = true;
+
+                //camera that follows player
+
+                game.camera.follow(player);
+
+                //player controls
+
+                cursors = game.input.keyboard.createCursorKeys();
+
+            }
+
+
+        }
+
+        function update() {
+            //  Collide the player and the stars with the platforms
+            if (start) {
+                let hitPlatform = game.physics.arcade.collide(player, platforms);
+                let hitSpikes = game.physics.arcade.collide(player, spikes);
+                let hitLava = game.physics.arcade.collide(player, lava);
+                let hitBarnacle = game.physics.arcade.collide(player, barnacle);
+                let hitBarnacle1 = game.physics.arcade.collide(player, barnacle1);
+                let hitBarnacle2 = game.physics.arcade.collide(player, barnacle2);
+                let hitBarnacle3 = game.physics.arcade.collide(player, barnacle3);
+                let hitJellyfish = game.physics.arcade.collide(player, jellyfish);
+                let hitJellyfish1 = game.physics.arcade.collide(player, jellyfish1);
+                let hitJellyfish2 = game.physics.arcade.collide(player, jellyfish2);
+                let hitJellyfish3 = game.physics.arcade.collide(player, jellyfish3);
+                let hitSmallJellyfish = game.physics.arcade.collide(player, smallJellyfish);
+                let turnInDust = game.physics.arcade.collide(player, blueAlien);
+                game.physics.arcade.collide(stars, platforms);
+                game.physics.arcade.collide(stars, floor);
+                game.physics.arcade.collide(stars, cliffs);
+                let hitUfo2 = game.physics.arcade.collide(player, ufo2);
+                let hitUfo1 = game.physics.arcade.collide(player, ufo1);
+                let hitUfo = game.physics.arcade.collide(player, ufo);
+                let hitRock = game.physics.arcade.collide(player, floor);
+                let hitCliff = game.physics.arcade.collide(player, cliffs);
+
+                //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
+                game.physics.arcade.overlap(player, stars, collectStar, null, this);
+
+                //  Reset the players velocity (movement)
+                player.body.velocity.x = 0;
+
+                if (cursors.left.isDown) {
+                    //  Move to the left
+                    player.body.velocity.x = -150;
+
+                    player.animations.play('left');
+                }
+                else if (cursors.right.isDown) {
+                    //  Move to the right
+                    player.body.velocity.x = 150;
+
+                    player.animations.play('right');
+                }
+                else {
+                    //  Stand still
+                    player.animations.stop();
+
+                    player.frame = 4;
+                }
+
+                //  Allow the player to jump if they are touching the ground.
+                if (cursors.up.isDown && player.body.touching.down && (hitPlatform || hitRock || hitCliff || hitUfo || hitUfo1 || hitUfo2)) {
+                    player.body.velocity.y = -350;   // make this less negative to decrease jump height
+                }
+
+                if (hitSpikes || hitLava || hitBarnacle || hitBarnacle1 || hitBarnacle2 || hitBarnacle3 || hitJellyfish || hitJellyfish1 || hitJellyfish2 || hitJellyfish3 || hitSmallJellyfish) {
+                    if (lives > 1) player.reset(0, game.world.height - 150);
+                    else {
+                        bummerText = game.add.text(200,200, 'Bummer!!!!! :[', {fontSize: '80px', fill: 'red'});
+                        loseGameText = game.add.text(25, 300, 'You are out of Lives. Refresh to Play again!', { fontSize: '40px', fill: 'red'});
+                        loseGameText.fixedToCamera = true;
+                        bummerText.fixedToCamera = true;
+                        player.kill();
+                    } 
+                    lives--;
+                    livesText.text = 'Lives: ' + lives;
+                }
+                  // win game clause *******************************************
+                if (turnInDust && (score === 370)) {
+                    if(lives === 4) epicText = game.add.text(150, 200, 'YOU OUTTA THIS WORLD! PERFECT SCORE! ^_^');
+                    else epicText = game.add.text(150, 200, 'EPIC!!!!!!!!! (>^_^)>', { fontSize: '80px', fill: 'red' });
+                    winGameText = game.add.text(25, 300, 'You Saved the Galaxy! Refresh to Play again', { fontSize: '40px', fill: 'red' });
+                    winGameText.fixedToCamera = true;
+                    epicText.fixedToCamera = true;
+                    player.kill();
+                }
+
+            }
+
+        }
+
+        function collectStar(player, star) {
+
+            // Removes the star from the screen
+            star.kill();
+
+            //  Add and update the score
+            score += 10;
+            scoreText.text = score + 'g StarDust!';
+
+        }
+
+        function createCliff(width, height, cliffs) {
+            cliff = cliffs.create(width, game.world.height - height, 'cliffs');
+            cliff.body.immovable = true;
+        }
+
+        function setStarGravity(star) {
+            star.body.gravity.y = 6;
+            star.body.bounce.y = 0.7 + Math.random() * 0.2;
+        }
+        function listener() {
+            counter++
+            start = true;
+            if (counter < 2) this.create();
+        }
+    </script>
+
+</body>
+
+</html>
